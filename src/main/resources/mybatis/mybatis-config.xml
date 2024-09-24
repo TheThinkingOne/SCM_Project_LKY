@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+<!--    <settings>-->
+<!--        &lt;!&ndash; SQL 로그 출력을 위한 설정 &ndash;&gt;-->
+<!--        <setting name="logImpl" value="STDOUT_LOGGING" />-->
+<!--    </settings>-->
+    <typeAliases>
+        <typeAlias alias="UUID" type="java.util.UUID"/>
+        <package name="org.example.jhta_2402_2_final.model.dto"/>
+        <package name="org.example.jhta_2402_2_final.model.dto.product"/>
+        <package name="org.example.jhta_2402_2_final.model.dto.productCompany"/>
+        <package name="org.example.jhta_2402_2_final.model.dto.common"/>
+        <package name="org.example.jhta_2402_2_final.model.dto.distribution"/>
+    </typeAliases>
+    <typeHandlers>
+        <typeHandler handler="org.example.jhta_2402_2_final.config.UUIDTypeHandler" javaType="java.util.UUID"/>
+    </typeHandlers>
+</configuration>

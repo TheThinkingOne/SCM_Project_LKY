@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <th:block th:replace="fragment/adminHeader :: head"></th:block>
+</head>
+
+
+<th:block th:replace="fragment/adminHeader :: body"></th:block>
+<div id="layoutSidenav_content">
+    <!-- 페이지마다 다른 콘텐츠 -->
+    <main>
+        <div id="alertMessage" th:if="${message}" class="alert alert-info" role="alert" th:text="${message}"></div>
+
+        <div class="container-fluid px-4">
+            <h2 class="mt-5 mb-5">밀키트 가격 설정</h2>
+
+            <div class="card shadow mb-5">
+                <div class="card-header">
+                    <i class="fa-solid fa-list"></i>
+                    밀키트 최저가 확인
+                </div>
+                <div class="card-body">
+                    <table id="datatablesSimple03">
+                        <thead>
+                        <tr>
+                            <th>번호</th>
+                            <th>밀키트명</th>
+                            <th>재료명</th>
+                            <th>재료 최저가</th>
+                            <th>수량</th>
+                            <th>합계</th>
+                            <th>밀키트 최저가</th>
+                            <th>현재 밀키트 가격</th>
+                            <th>밀키트 가격 변경</th>
+                        </tr>
+                        </thead>
+                        <tfoot>
+                        <tr>
+                            <th>번호</th>
+                            <th>밀키트명</th>
+                            <th>재료명</th>
+                            <th>재료 최저가</th>
+                            <th>수량</th>
+                            <th>합계</th>
+                            <th>밀키트 최저가</th>
+                            <th>현재 밀키트 가격</th>
+                            <th>밀키트 가격 변경</th>
+                        </tr>
+                        </tfoot>
+                        <!--tbody > tr > td-->
+                        <tbody>
+                        <tr th:each="kit, iterStat : ${minKitPrice}" >
+                            <td th:text="${iterStat.count}"></td>
+                            <td th:text="${kit.mealkitName}"></td>
+                            <td th:text="${kit.sourceName}"></td>
+                            <td th:text="${kit.minPrice}"></td>
+                            <td th:text="${kit.quantity}"></td>
+                            <td th:text="${kit.total}"></td>
+                            <td th:text="${kit.minMealkitPrice}"></td>
+                            <td th:text="${kit.currentMealkitPrice}"></td>
+
+                            <td>
+                                <button type="button" class="btn btn-info"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#priceUpdateModal"
+                                        th:attr="data-mealkit-id=${kit.mealkitId}, data-min-mealkit-price=${kit.minMealkitPrice}, data-current-mealkit-price=${kit.currentMealkitPrice}, data-mealkit-name=${kit.mealkitName}">
+                                    밀키트 가격 변경
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card shadow mb-5">
+                <div class="card-header">
+                    <i class="fa-solid fa-list"></i>
+                    재료 최저가 확인
+                </div>
+                <div class="card-body">
+
+                    <table id="datatablesSimple02">
+                        <thead>
+                        <tr>
+                            <th>번호</th>
+                            <th>생산업체명</th>
+                            <th>재료</th>
+                            <th>가격</th>
+                        </tr>
+                        </thead>
+                        <tfoot>
+                        <tr>
+                            <th>번호</th>
+                            <th>생산업체명</th>
+                            <th>재료</th>
+                            <th>가격</th>
+                        </tr>
+                        </tfoot>
+                        <!--tbody > tr > td-->
+                        <tbody>
+                        <tr th:each="min, iterStat : ${minSourcePrice}" >
+                            <td th:text="${iterStat.count}"></td>
+                            <td th:text="${min.companyName}"></td>
+                            <td th:text="${min.sourceName}"></td>
+                            <td th:text="${min.price}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card shadow mb-5">
+                <div class="card-header">
+                    <i class="fa-solid fa-list"></i>
+                    밀키트별 필요 재료 개수 확인
+                </div>
+                <div class="card-body">
+
+
+                    <table id="datatablesSimple04">
+                        <thead>
+                        <tr>
+                            <th>번호</th>
+                            <th>밀키트명</th>
+                            <th>재료명</th>
+                            <th>개수</th>
+
+                        </tr>
+                        </thead>
+                        <tfoot>
+                        <tr>
+                            <th>번호</th>
+                            <th>밀키트명</th>
+                            <th>재료명</th>
+                            <th>개수</th>
+                        </tr>
+                        </tfoot>
+
+                        <!--tbody > tr > td-->
+                        <tbody>
+                        <tr th:each="kitSource, iterStat : ${kitSourceDetails}">
+
+                            <td th:text="${iterStat.count}"></td>
+                            <td th:text="${kitSource.mealkitName}"></td>
+                            <td th:text="${kitSource.sourceName}"></td>
+                            <td th:text="${kitSource.quantity}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+
+                </div>
+            </div>
+
+            <div class="card shadow mb-5">
+                <div class="card-header">
+                    <i class="fa-solid fa-list"></i>
+                    생산 업체별 재료 가격 확인
+                </div>
+                <div class="card-body">
+
+                    <table id="datatablesSimple">
+                        <thead>
+                        <tr>
+                            <th>번호</th>
+                            <th>생산업체명</th>
+                            <th>재료</th>
+                            <th>가격</th>
+                        </tr>
+                        </thead>
+                        <tfoot>
+                        <tr>
+                            <th>번호</th>
+                            <th>생산업체명</th>
+                            <th>재료</th>
+                            <th>가격</th>
+                        </tr>
+                        </tfoot>
+                        <!--tbody > tr > td-->
+                        <tbody>
+                        <tr th:each="sourcePrice, iterStat : ${sourcePrice}" >
+                            <td th:text="${iterStat.count}"></td>
+                            <td th:text="${sourcePrice.companyName}"></td>
+                            <td th:text="${sourcePrice.sourceName}"></td>
+                            <td th:text="${sourcePrice.price}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+        </div>
+    </main>
+</div>
+
+
+
+<!-- 모달 -->
+<div class="modal fade" id="priceUpdateModal" tabindex="-1" aria-labelledby="priceUpdateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="priceUpdateModalLabel">밀키트 가격 변경</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateKitPriceForm" th:action="@{/sales/admin/source-price/updateKitPrice}" th:method="post">
+                    <div class="mb-3">
+                        <label for="mealkitName" class="form-label">밀키트 이름</label>
+                        <input type="text" class="form-control" id="mealkitName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <input type="hidden" class="form-control" id="mealkitId" name="mealkitId" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="minMealkitPrice" class="form-label">최소 가격</label>
+                        <input type="text" class="form-control" id="minMealkitPrice" name="minPrice" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="currentMealkitPrice" class="form-label">현재 가격</label>
+                        <input type="text" class="form-control" id="currentMealkitPrice" readonly>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                <button type="submit" class="btn btn-primary" form="updateKitPriceForm">최소값으로 변경</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var priceUpdateModal = document.getElementById('priceUpdateModal');
+        priceUpdateModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var mealkitId = button.getAttribute('data-mealkit-id');
+            var minMealkitPrice = button.getAttribute('data-min-mealkit-price');
+            var currentMealkitPrice = button.getAttribute('data-current-mealkit-price');
+            var mealkitName = button.getAttribute('data-mealkit-name');
+
+            var modalMealkitId = priceUpdateModal.querySelector('#mealkitId');
+            var modalMinMealkitPrice = priceUpdateModal.querySelector('#minMealkitPrice');
+            var modalCurrentMealkitPrice = priceUpdateModal.querySelector('#currentMealkitPrice');
+            var modalMealkitName = priceUpdateModal.querySelector('#mealkitName');
+
+            modalMealkitId.value = mealkitId;
+            modalMinMealkitPrice.value = minMealkitPrice;
+            modalCurrentMealkitPrice.value = currentMealkitPrice;
+            modalMealkitName.value = mealkitName;
+        });
+    });
+</script>
+
+
+
+<th:block th:replace="fragment/adminFooterWithSearch :: footer"></th:block>
+</body>
+</html>

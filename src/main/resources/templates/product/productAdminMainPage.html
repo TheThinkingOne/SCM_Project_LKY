@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head th:replace="~{fragment/head}"></head>
+<body class="sb-nav-fixed">
+<nav th:replace="~{fragment/indexAdminHeader}"></nav>
+<div id="layoutSidenav">
+    <div id="layoutSidenav_content">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">생산 업무 관리자 페이지</h1>
+                <ol class="breadcrumb mb-4">
+                    <!--                    <li class="breadcrumb-item active">Dashboard</li>-->
+                </ol>
+                <div class="row">
+                    <div class="col-xl-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <div class="chartTitle">
+                                    <div class="input-group chartTitleLeft">
+                                        <i class="fas fa-chart-bar me-1"></i>
+                                        <label>주문 현황 차트</label>
+                                    </div>
+                                    <div class="chartTitleCenter">
+
+                                    </div>
+                                    <div class="input-group chartTitleRight productOrderChartCompanyOption">
+                                        <label class="input-group-text">업체명</label>
+                                        <select class="form-select" id="productOrderCompanyOption">
+
+                                        </select>
+                                    </div>
+                                    <div class="input-group chartTitleRight">
+                                        <label class="input-group-text">옵션</label>
+                                        <select class="form-select" id="productOrderChartOption">
+                                            <option value="productOrderCountByCompany" selected>업체별 주문 수량</option>
+                                            <option value="productOrderCountByProduct">총 상품 주문 수량</option>
+                                            <option value="productCountByCompany">업체별 상품 주문 수량</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="productOrderAdminChart" width="100%" height="100%"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <div class="chartTitle">
+                                    <div class="input-group chartTitleLeft">
+                                        <i class="fas fa-chart-bar me-1"></i>
+                                        <label>상품 현황 차트</label>
+                                    </div>
+                                    <div class="chartTitleCenter">
+
+                                    </div>
+                                    <div class="input-group chartTitleRight sourcePriceChartCompanyOption">
+                                        <label class="input-group-text">업체명</label>
+                                        <select class="form-select" id="sourcePriceCompanyOption">
+
+                                        </select>
+                                    </div>
+                                    <div class="input-group chartTitleRight">
+                                        <label class="input-group-text">옵션</label>
+                                        <select class="form-select" id="sourcePriceChartOption">
+                                            <option value="sourceMinPrice" selected>상품별 최저가격</option>
+                                            <option value="sourcePriceByCompany">업체별 상품 가격</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="sourcePriceChart" width="100%" height="100%"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <div class="tableTitle">
+                            <div class="tableTitleLeft">
+                                <i class="fas fa-table me-1"></i>
+                                <button class="btn btn-sm btn-outline-primary order" id="productTableChange"
+                                        name="productTableStatus"
+                                        value="order">주문 현황
+                                </button>
+                            </div>
+                            <div class="tableTitleCenter">
+
+                            </div>
+                            <div class="tableTitleRight">
+                                <div class="input-group">
+                                    <span class="input-group-text">생산업체 명</span>
+                                    <input type="text" name="productAdminSearchTextCompanyName"
+                                           id="productAdminSearchTextCompanyName" class="form-control"
+                                           placeholder="생산업체명">
+                                    <span class="input-group-text">생산품 명</span>
+                                    <input type="text" name="productAdminSearchTextProductName"
+                                           id="productAdminSearchTextProductName" class="form-control"
+                                           placeholder="생산품명">
+                                    <button class="btn btn-outline-secondary" id="productAdminSearchBtn">검색</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="productOrderTableContainer">
+                            <table id="productAdminOrderTable" class="table table-bordered" style="width:100%">
+                                <thead>
+                                <tr>
+                                    <th>주문번호</th>
+                                    <th>생산업체명</th>
+                                    <th>생산품</th>
+                                    <th>생산품가격</th>
+                                    <th>개수</th>
+                                    <th>가격</th>
+                                    <th>주문일자</th>
+                                    <th>상태</th>
+                                    <!--                                    <th>주문 승인 | 주문 거절</th>-->
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                            <div class="d-flex justify-content-end mt-2">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#insertModal">
+                                    생산 업체 등록
+                                </button>
+                            </div>
+                        </div>
+                        <div id="sourcePriceTableContainer" style="display:none;">
+                            <table id="productAdminSourceTable" class="table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>생산번호</th>
+                                    <th>생산 업체명</th>
+                                    <th>상품 명</th>
+                                    <th>상품 가격</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <th:block th:replace="fragment/productAdminPageModal"></th:block>
+        <footer class="py-4 bg-light mt-auto">
+            <div class="container-fluid px-4">
+                <div class="d-flex align-items-center justify-content-between small">
+                    <div class="text-muted">Copyright &copy; Your Website 2023</div>
+                    <div>
+                        <a href="#">Privacy Policy</a>
+                        &middot;
+                        <a href="#">Terms &amp; Conditions</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+</div>
+</body>
+<th:block th:replace="~{fragment/productAdminFooter}"></th:block>
+<script src="/js/productCompanyAdmin.js" th:src="@{/js/productCompanyAdmin.js}"></script>
+</html>

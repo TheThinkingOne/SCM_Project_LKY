@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <th:block th:replace="fragment/adminHeader :: head"></th:block>
+</head>
+
+
+<th:block th:replace="fragment/adminHeader :: body"></th:block>
+<div id="layoutSidenav_content">
+    <!-- 페이지마다 다른 콘텐츠 -->
+    <main>
+        <div id="alertMessage" th:if="${message}" class="alert alert-info" role="alert" th:text="${message}"></div>
+        <div class="container-fluid px-4">
+            <h1 class="mt-4 mb-5">Product_Order 테이블 조회 </h1>
+
+            <div class="card mb-5">
+                <div class="card-header">
+                    <i class="fa-solid fa-list"></i>
+                    Product_Order 테이블 조회
+                </div>
+                <div class="card-body">
+
+                    <table id="datatablesSimple">
+                        <thead>
+                        <tr>
+                            <th>생산 ID</th>
+                            <th>업체명</th>
+                            <th>재료명</th>
+                            <th>최저가</th>
+                            <th>수량</th>
+                            <th>주문 날짜</th>
+                            <th>상태</th>
+                        </tr>
+                        </thead>
+                        <tfoot>
+                        <tr>
+                            <th>생산 ID</th>
+                            <th>업체명</th>
+                            <th>재료명</th>
+                            <th>최저가</th>
+                            <th>수량</th>
+                            <th>주문 날짜</th>
+                            <th>상태</th>
+                        </tr>
+                        </tfoot>
+
+                        <tbody>
+                        <tr th:each="productOrder : ${productOrder}" >
+                            <td th:text="${productOrder.productOrderId}"></td>
+                            <td th:text="${productOrder.companyName}"></td>
+                            <td th:text="${productOrder.sourceName}"></td>
+                            <td th:text="${productOrder.sourcePrice}"></td>
+                            <td th:text="${productOrder.quantity}"></td>
+                            <td th:text="${productOrder.orderDate}"></td>
+                            <td th:text="${productOrder.status}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-5">
+                <div class="card-header">
+                    <i class="fa-solid fa-list"></i>
+                    Product_Order_Log 테이블 조회
+                </div>
+                <div class="card-body">
+
+                    <table id="datatablesSimple02">
+                        <thead>
+                        <tr>
+                            <th>번호</th>
+                            <th>업체명</th>
+                            <th>재료명</th>
+                            <th>수량</th>
+                            <th>재료가격</th>
+                            <th>주문 날짜</th>
+                            <th>상태</th>
+                        </tr>
+                        </thead>
+                        <tfoot>
+                        <tr>
+                            <th>번호</th>
+                            <th>업체명</th>
+                            <th>재료명</th>
+                            <th>수량</th>
+                            <th>재료가격</th>
+                            <th>주문 날짜</th>
+                            <th>상태</th>
+                        </tr>
+                        </tfoot>
+
+                        <tbody>
+                        <tr th:each="productOrderLog, iterStat : ${productOrderLog}" >
+                            <td th:text="${iterStat.count}"></td>
+                            <td th:text="${productOrderLog.companyName}"></td>
+                            <td th:text="${productOrderLog.sourceName}"></td>
+                            <td th:text="${productOrderLog.quantity}"></td>
+                            <td th:text="${productOrderLog.price}"></td>
+                            <td th:text="${productOrderLog.orderDate}"></td>
+                            <td th:text="${productOrderLog.status}"></td>
+
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<th:block th:replace="fragment/adminFooterWithSearch :: footer"></th:block>
+</body>
+</html>

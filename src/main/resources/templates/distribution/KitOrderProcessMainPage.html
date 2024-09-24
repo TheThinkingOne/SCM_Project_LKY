@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head th:replace="~{fragment/head}">
+    <th:block th:replace="fragment/adminHeader :: head"></th:block>
+    <!-- 추가적인 CSS 및 JavaScript 파일 링크 -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.min.js"></script>
+    <link href="../../static/css/styles.css" th:href="@{/css/warehouse.css}" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+</head>
+<body>
+
+<th:block th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')')}">
+    <th:block th:replace="fragment/adminHeader :: body"></th:block>
+</th:block>
+<th:block th:if="${!#authorization.expression('hasRole(''ROLE_ADMIN'')')}">
+    <th:block th:replace="fragment/salesUserHeader :: body"></th:block>
+</th:block>
+
+<!--<head>
+    <th:block th:replace="fragment/adminHeader :: head"></th:block>
+    &lt;!&ndash; 추가적인 CSS 및 JavaScript 파일 링크 &ndash;&gt;
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.min.js"></script>
+    <link href="../../static/css/styles.css" th:href="@{/css/warehouse.css}" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+</head>
+<body>
+
+
+<th:block th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')')}">
+    <th:block th:replace="fragment/adminHeader :: body"></th:block>
+</th:block>
+<th:block th:if="${!#authorization.expression('hasRole(''ROLE_ADMIN'')')}">
+    <th:block th:replace="fragment/salesUserHeader :: body"></th:block>
+</th:block>-->
+
+<div id="layoutSidenav_content">
+    <main>
+
+        <div class="container-fluid px-4">
+            <h1>유통창고 재고 그래프</h1>
+            <ol class="breadcrumb mb-4">
+                <li class="breadcrumb-item active">유통 창고의 재고를 파악할 수 있습니다.</li>
+            </ol>
+            <a href="/wareHouse/selectAll" class="btn btn-primary mb-4">유통 페이지로 이동</a>
+        </div>
+
+                <div class="row">
+                    <div class="col-xl-12"> <!-- 차트와 테이블을 동일 너비로 맞춤 -->
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-chart-area me-1"></i>
+                                    재고 현황
+                                </div>
+                                <!-- 드롭다운 버튼 --><!--
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="warehouseChartDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                막대 차트
+                            </button>
+                            <ul class="dropdown-menu" id="chartDropDownMenu" aria-labelledby="warehouseChartDropdown">
+                                <li><button class="dropdown-item warehouse-dropdown-item" data-value="bar" data-name="막대 차트 ">막대 차트</button></li>
+                                <li><button class="dropdown-item warehouse-dropdown-item" data-value="line" data-name="선형 차트 ">선형 차트</button></li>
+                                <li><button class="dropdown-item warehouse-dropdown-item" data-value="doughnut" data-name="도넛 차트 ">도넛 차트</button></li>
+                            </ul>
+                        </div>-->
+                            </div>
+                            <div class="card-body">
+                                <!-- 차트 너비를 100%로 맞추기 -->
+                                <canvas id="logisticsWarehouseStockChart" style="width: 100%; height: 400px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+
+        <!-- 상태가 처리 전인 목록만 보게 하는 테이블 리스트 -->
+        <div class="container-fluid px-4">
+            <h1 class="mt-4">새로운 밀키트 주문 목록</h1>
+            <!--<ol class="breadcrumb mb-4">
+                <li class="breadcrumb-item active">XX개의 새로운 밀키트 재료 요청이 있습니다.</li>
+            </ol>-->
+            <ol class="breadcrumb mb-4">
+                <li class="breadcrumb-item active" th:text="${newOrderCount} + '개의 새로운 밀키트 재료 요청이 있습니다.'"></li>
+            </ol>
+
+            <!--주문 들어온 밀키트 관련 테이블-->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table me-1"></i>
+                    밀키트 필요 재료 발주
+                </div>
+                <div class="card-body">
+
+                    <form action="/adminMain" method="get" class="input-group justify-content-end ms-auto mb-3"
+                          style="width: 400px;">
+                        <select class="datatable-selector" name="category">
+                            <option value="All">All</option>
+                            <option value="firstName">firstName</option>
+                            <option value="lastName">lastName</option>
+                            <option value="email">email</option>
+                            <option value="department">department</option>
+                        </select>
+                        <input type="text" class="form-control" name="keyword" placeholder="Search...">
+                        <button type="submit" class="btn btn-primary">검색</button>
+                    </form>
+
+                    <table id="datatablesSimple">
+                        <thead>
+                        <tr>
+                            <th>주문번호</th>
+                            <th>밀키트 회사명</th>
+                            <th>밀키트이름</th>
+                            <th>밀키트 가격</th>
+                            <th>주문개수</th>
+                            <th>총 예상 판매가</th>
+                            <th>주문일자</th>
+                            <th>진행상태</th>
+                            <th>재료재고확인/발주</th>
+                            <th>재료출고</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="kitOrderProcess : ${kitOrderList}">
+                            <td th:text="${#strings.substring(kitOrderProcess.kitOrderID, 0, 8)}"></td>
+                            <td th:text="${kitOrderProcess.kitCompanyName}"></td>
+                            <td th:text="${kitOrderProcess.kitName}"></td>
+                            <td th:text="${kitOrderProcess.kitPrice}"></td>
+                            <td th:text="${kitOrderProcess.quantity}"></td>
+                            <td th:text="${kitOrderProcess.totalPrice}"></td>
+                            <td th:text="${#dates.format(kitOrderProcess.kitOrderDate, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                            <td th:text="${kitOrderProcess.status}"></td>
+                            <td>
+                                <button type="button" class="btn btn-info btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#kitSourceCheckAndOrderModal"
+                                        th:attr="data-kitOrderID=${kitOrderProcess.kitOrderID},
+                                                 data-kitCompanyName=${kitOrderProcess.kitCompanyName},
+                                                 data-kitName=${kitOrderProcess.kitName},
+                                                 data-quantity=${kitOrderProcess.quantity},
+                                                 data-kitOrderDate=${#dates.format(kitOrderProcess.kitOrderDate, 'yyyy-MM-dd')},
+                                                 data-kitOrderStatus=${kitOrderProcess.status}">
+                                    재료확인/발주
+                                </button>
+                            </td>
+                            <td>
+
+                                <!--제발되라-->
+                                <button th:onclick="processKitOrder([[${kitOrderProcess.kitOrderID}]])" id="sourceSellOutButton" type="button" class="btn btn-info btn-sm">판매</button>
+
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!--<div class="d-flex justify-content-end">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">추가</button>
+            </div>-->
+        </div>
+
+        <!-- 발주요청 또는 판매 버튼을 누른 후 상태가 처리전 이 아닌 것들만 보이게 할 테이블 리스트 -->
+        <div class="container-fluid px-4">
+            <h1 class="mt-4">처리중인 밀키트 주문 목록</h1>
+            <!--<ol class="breadcrumb mb-4">
+                <li class="breadcrumb-item active">XX개의 요청처리된 밀키트 주문이 있습니다.</li>
+            </ol>-->
+            <ol class="breadcrumb mb-4">
+                <li class="breadcrumb-item active" th:text="${processedOrderCount} + '개의 요청처리된 밀키트 주문이 있습니다.'"></li>
+            </ol>
+
+
+            <!--주문 들어온 밀키트 관련 테이블-->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table me-1"></i>
+                    밀키트 필요 재료 발주
+                </div>
+                <div class="card-body">
+
+                    <form action="/adminMain" method="get" class="input-group justify-content-end ms-auto mb-3"
+                          style="width: 400px;">
+                        <select class="datatable-selector" name="category">
+                            <option value="All">All</option>
+                            <option value="firstName">firstName</option>
+                            <option value="lastName">lastName</option>
+                            <option value="email">email</option>
+                            <option value="department">department</option>
+                        </select>
+                        <input type="text" class="form-control" name="keyword" placeholder="Search...">
+                        <button type="submit" class="btn btn-primary">검색</button>
+                    </form>
+
+                    <table id="datatablesSimple02">
+                        <thead>
+                        <tr>
+                            <th>주문번호</th>
+                            <th>밀키트 회사명</th>
+                            <th>밀키트이름</th>
+                            <th>밀키트 가격</th>
+                            <th>주문개수</th>
+                            <th>총 예상 판매가</th>
+                            <th>주문일자</th>
+                            <th>진행상태</th>
+                            <th>재료재고확인/발주</th>
+                            <th>재료출고</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="kitOrderProcess : ${kitProcessedOrderList}">
+                            <td th:text="${#strings.substring(kitOrderProcess.kitOrderID, 0, 8)}"></td>
+                            <td th:text="${kitOrderProcess.kitCompanyName}"></td>
+                            <td th:text="${kitOrderProcess.kitName}"></td>
+                            <td th:text="${kitOrderProcess.kitPrice}"></td>
+                            <td th:text="${kitOrderProcess.quantity}"></td>
+                            <td th:text="${kitOrderProcess.totalPrice}"></td>
+                            <td th:text="${#dates.format(kitOrderProcess.kitOrderDate, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                            <td th:text="${kitOrderProcess.status}"></td>
+                            <td>
+                                <button type="button" class="btn btn-info btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#kitSourceCheckAndOrderModal"
+                                        th:attr="data-kitOrderID=${kitOrderProcess.kitOrderID},
+                                                 data-kitCompanyName=${kitOrderProcess.kitCompanyName},
+                                                 data-kitName=${kitOrderProcess.kitName},
+                                                 data-quantity=${kitOrderProcess.quantity},
+                                                 data-kitOrderDate=${#dates.format(kitOrderProcess.kitOrderDate, 'yyyy-MM-dd')},
+                                                 data-kitOrderStatus=${kitOrderProcess.status}">
+                                    재료확인/발주
+                                </button>
+                            </td>
+                            <td>
+                                <!--<form th:action="@{/distribution/kitOrderRelease}" method="post">
+                                    <input type="hidden" name="kitOrderId" th:value="${kitOrderProcess.kitOrderID}"/>
+                                    <button id="sourceSellOutButton" type="button" class="btn btn-info btn-sm">판매
+                                    </button>
+                                </form>-->
+
+                                <!--제발되라-->
+                                <button type="button" class="btn btn-info btn-sm"
+                                        th:disabled="${kitOrderProcess.status != '처리전' and kitOrderProcess.status != '처리완료'}"
+                                        th:onclick="processKitOrder([[${kitOrderProcess.kitOrderID}]])" id="sourceSellOutButton02">판매</button>
+
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!--<div class="d-flex justify-content-end">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">추가</button>
+            </div>-->
+        </div>
+
+
+    </main>
+</div>
+
+<!-- 재료확인/발주 modal -->
+<div class="modal fade" id="kitSourceCheckAndOrderModal" tabindex="-1" aria-labelledby="kitOrderDetailModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="employeeForm" th:action="@{/distribution/requestSourceOrder}" th:method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="kitOrderDetailModalLabel">주문 상세</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="modalKitOrderID" class="form-label">주문번호</label>
+                        <input type="text" class="form-control" id="modalKitOrderID" name="modalKitOrderID" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalKitCompanyName" class="form-label">밀키트 회사명</label>
+                        <input type="text" class="form-control" id="modalKitCompanyName" name="modalKitCompanyName"
+                               readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalKitName" class="form-label">밀키트명</label>
+                        <input type="text" class="form-control" id="modalKitName" name="modalKitName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalQuantity" class="form-label">주문수량</label>
+                        <input type="text" class="form-control" id="modalQuantity" name="modalQuantity" readonly>
+                    </div>
+                    <div>
+                        <label for="modalStatus" class="form-label">주문상태</label>
+                        <input type="text" class="form-control" id="modalStatus" name="modalStatus" readonly>
+                    </div>
+
+                    <!-- 재료 목록 확인할 수 있는 테이블 -->
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>재료명</th>
+                                <th>필요수량</th>
+                                <th>창고 재고 수량</th>
+                                <th>현재 최소가</th>
+                                <th>공급업체명</th>
+                            </tr>
+                            </thead>
+                            <tbody id="ingredientsList">
+                            <!-- 여기에 JavaScript를 사용하여 동적으로 행을 추가할 것입니다. -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalDate" class="form-label">주문일자</label>
+                        <input type="text" class="form-control" id="modalDate" name="modalDate" readonly>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button id="requestOrderButton" type="button" class="btn btn-primary">재료발주요청</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- footer.html 파일을 포함합니다 -->
+<th:block th:replace="fragment/adminFooter :: footer"></th:block>
+
+<!-- Script block to handle modals -->
+<script th:inline="javascript">
+
+    function webSocketConnect() {
+        const socket = new SockJS('/websocket-endpoint');
+        const stompClient = Stomp.over(socket);
+
+        // 웹소켓 연결 시작
+        stompClient.connect({}, function () {
+            // 창고 재고 업데이트를 위한 경로 구독
+            stompClient.subscribe('/topic/warehouse/update', function (message) {
+                const payload = message.body;
+
+                if (payload === 'update') {
+                    // pageUpdate 함수를 호출하여 차트 데이터를 새로 고침
+                    updateLogisticesWarehouseChart();  // 차트를 업데이트하는 함수
+                }
+
+            });
+        });
+    }
+    webSocketConnect();
+
+    function modalWebSocketConnect(kitOrderId) {
+        const socket = new SockJS('/websocket-endpoint');
+        const stompClient = Stomp.over(socket);
+
+        // 웹소켓 연결 시작
+        stompClient.connect({}, function () {
+            // 주문에 대한 상태 메시지를 구독
+            stompClient.subscribe('/topic/kitOrder/' + kitOrderId, function (message) {
+                const payload = message.body;
+
+                if (payload === 'processing') {
+                    // 처리중일 경우 재료발주/요청 버튼을 비활성화하고 텍스트를 "처리중..."으로 변경
+                    const requestOrderButton = document.getElementById('requestOrderButton');
+                    requestOrderButton.disabled = true;
+                    requestOrderButton.textContent = "처리중...";
+                    alert("다른 사용자가 이미 처리중입니다.")
+
+                    // 다른 버튼도 처리중 상태로 설정
+                    const sellOutButton = document.getElementById('sourceSellOutButton');
+                    if (sellOutButton) {
+                        sellOutButton.disabled = true;
+                    }
+                }
+            });
+        });
+    }
+
+
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const kitSourceCheckAndOrderModal = document.getElementById('kitSourceCheckAndOrderModal');
+
+        initChart();
+        updateLogisticesWarehouseChart();
+
+        if (kitSourceCheckAndOrderModal) {
+            kitSourceCheckAndOrderModal.addEventListener('show.bs.modal', event => {
+                const button = event.relatedTarget; // 클릭된 버튼
+                const kitOrderId = button.getAttribute('data-kitOrderID');
+
+                // 모달 websocket 연결
+                modalWebSocketConnect(kitOrderId);
+
+                const kitCompanyName = button.getAttribute('data-kitCompanyName');
+                const kitName = button.getAttribute('data-kitName');
+                const kitQuantity = button.getAttribute('data-quantity');
+                const kitOrderDate = button.getAttribute('data-kitOrderDate');
+                const kitOrderStatus = button.getAttribute('data-kitOrderStatus');
+
+                // 폼 필드에 값 설정
+                document.getElementById('modalKitOrderID').value = kitOrderId;
+                document.getElementById('modalKitCompanyName').value = kitCompanyName;
+                document.getElementById('modalKitName').value = kitName;
+                document.getElementById('modalQuantity').value = kitQuantity;
+                document.getElementById('modalDate').value = kitOrderDate;
+                document.getElementById('modalStatus').value = kitOrderStatus;
+
+                console.log('kitOrderStatus:', kitOrderStatus);
+
+                const requestOrderButton = document.getElementById('requestOrderButton');
+                if (kitOrderStatus !== '처리전' && kitOrderStatus !== '처리완료') {
+                    requestOrderButton.disabled = true;  // 상태가 처리중 또는 처리완료가 아니면 비활성화
+                } else {
+                    requestOrderButton.disabled = false;  // 상태가 맞으면 활성화
+                }
+
+                // 주문에 해당하는 밀키트 재료 목록을 로드
+                fetch(`/distribution/kitOrderRecipe?kitOrderID=${kitOrderId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const ingredientsList = document.getElementById('ingredientsList');
+                        ingredientsList.innerHTML = ''; // 기존 내용을 초기화
+                        let isStockSufficient = true; // 재고가 충분한지 확인하는 변수
+                        let isProcessing = true; // 진행상태가 처리중인지 확인하는 변수(처리중)
+                        let isProcessed = true; // 처리완료 됬는지 확인하는 변수(아마 발주요청 해서 창고에 재고가 쌓인다 가정하고 status 가 3으로 됫다 치면, 처리완료)
+                        // 처리전, 처리 완료가 아니라면 판매 버튼을 일단 disable 시켜야 하고
+                        // 처리중, 처리완료 이면 modal 안에서 재료발주요청 못 누르게 해야함
+                        // 일단 현재 나는 조건 충족 시 판매버튼을 누르면 KIT_ORDER 의 상태값 6으로 바꾸는것 까지 함
+                        //
+
+                        data.forEach(ingredient => {
+                            const requiredQuantity = parseInt(ingredient['필요수량']);
+                            const warehouseQuantity = parseInt(ingredient['창고재고수량']);
+
+                            // 재고가 부족할 때 빨간 글씨로 "(부족)" 표시
+                            let shortageText = '';
+                            if (requiredQuantity > warehouseQuantity) {
+                                shortageText = `<span style="color: red;">(부족)</span>`;
+                                isStockSufficient = false;
+                            }
+
+                            /*if (!isStockSufficient) {
+                                requestOrderButton.disabled = true;   // 재고가 부족하면 버튼 비활성화
+                            }*/
+
+                            console.log('isStockSufficient:', isStockSufficient);
+
+                            const row = `
+                            <tr>
+                                <td>${ingredient['재료명']}</td>
+                                <td>${requiredQuantity}</td>
+                                <td>${warehouseQuantity} ${shortageText}</td>
+                                <td>${ingredient['현재최소가']}</td>
+                                <td>${ingredient['공급업체명']}</td>
+                            </tr>`;
+                            ingredientsList.innerHTML += row;
+                        });
+
+                        // 판매 버튼을 가져와 재고가 충분하지 않으면 disable 처리시키기
+                        const sellOutButton = document.getElementById('sourceSellOutButton');
+                        if (isStockSufficient) {
+                            sellOutButton.disabled = false;  // 재고가 충분하면 버튼 활성화
+                        } else {
+                            sellOutButton.disabled = true;   // 재고가 부족하면 버튼 비활성화
+                        }
+
+                        const sellOutButton02 = document.getElementById('sourceSellOutButton02');
+                        if (isStockSufficient) {
+                            sellOutButton02.disabled = false;  // 재고가 충분하면 버튼 활성화
+                        } else {
+                            sellOutButton02.disabled = true;   // 재고가 부족하면 버튼 비활성화
+                        }
+
+                    })
+                    .catch(error => console.error('Error fetching the ingredients:', error));
+
+            });
+        }
+    });
+
+
+    // json 방법
+    document.getElementById('requestOrderButton').addEventListener('click', function (event) {
+        event.preventDefault(); // 기본 폼 제출 방지
+
+        const orderDetails = [];
+        const kitOrderId = document.getElementById('modalKitOrderID').value;
+        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        console.log(csrfToken);
+        console.log(csrfHeader);
+
+        // 재료 테이블에서 데이터 추출(모달 안에 적혀있는 값을 불러옴)
+        document.querySelectorAll("#ingredientsList tr").forEach(row => {
+            const sourceName = row.cells[0].innerText; // 재료이름
+            const requiredQuantity = parseInt(row.cells[1].innerText); // 필요수량
+            const warehouseQuantity = parseInt(row.cells[2].innerText); // 창고재고수량
+            const minPrice = parseInt(row.cells[3].innerText); // 현재 최소가
+            const supplierName = row.cells[4].innerText; // 재료 공급업체명
+
+            // 재고 부족 시 발주 내역 추가
+            if (requiredQuantity > warehouseQuantity) {
+                const insufficientQuantity = requiredQuantity - warehouseQuantity;
+                orderDetails.push({
+                    sourceName: sourceName,
+                    supplierName: supplierName,
+                    minPrice: minPrice,
+                    insufficientQuantity: insufficientQuantity
+                });
+            }
+        });
+
+        orderDetails.map((order) => console.log(order));
+        console.log(orderDetails);
+        console.log({kitOrderId, orderDetails}); // 서버로 보내기 전에 확인
+        console.log(JSON.stringify(orderDetails))
+        console.log(JSON.stringify({
+            orderDetails: orderDetails
+        }))
+        console.log(JSON.stringify({
+            kitOrderId: kitOrderId,
+            orderDetails: {
+                "orderDetails": orderDetails
+            }
+        }));
+        // 서버로 재료 발주 요청
+        if (orderDetails.length > 0) {
+            fetch("/distribution/requestSourceOrder", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    [csrfHeader]: csrfToken // CSRF 토큰을 헤더에 포함
+                },
+                body: JSON.stringify({
+                    kitOrderId: kitOrderId,
+                    orderDetailList: orderDetails
+                })
+                // body: JSON.stringify({ kitOrderId, orderDetails }),
+            })
+                .then(() => {
+                    alert('재료 발주 요청이 완료되었습니다.');
+                    window.location.href = '/distribution/main';  // 성공 후 리다이렉트
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                });
+        } else {
+            alert("모든 재고가 충분합니다.");
+        }
+    });
+
+    // 주문 번호를 인자로 받아서 처리하는 함수 (전역에 정의)
+    const processKitOrder = (kitOrderId) => {
+        console.log(kitOrderId); // 서버에서 넘어온 kitOrderId 값 확인
+
+        // CSRF 토큰 설정 (Spring Security 사용 시)
+        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+        // AJAX 요청 보내기
+        fetch("/distribution/kitOrderRelease", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                [csrfHeader]: csrfToken // CSRF 토큰 포함
+            },
+            body: JSON.stringify({ kitOrderId: kitOrderId }) // 서버로 전달할 JSON 데이터
+        })
+            .then(response => response.json()) // JSON 응답 받기
+            .then(data => {
+                if (data.status === "success") {
+                    alert(data.message); // 성공 메시지
+                    window.location.href = '/distribution/main?success=true'; // 성공 시 리다이렉트
+                } else {
+                    alert(data.message); // 실패 메시지
+                    window.location.href = '/distribution/main?error=insufficientStock'; // 실패 시 리다이렉트
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert('오류가 발생했습니다. 다시 시도해 주세요.');
+            });
+    };
+
+    let warehouseStockChart;
+
+    function initChart() { // 여기 안에 type
+        const ctx = $('#logisticsWarehouseStockChart')[0].getContext('2d');
+
+        if(warehouseStockChart) {
+            warehouseStockChart.destroy(); // 기존 모양의 차트 삭제하고 새 유형의 차트 다시 로딩
+        }
+
+        warehouseStockChart = new Chart(ctx, {
+            type: 'bar', // 동적으로 받은 차트 타입, 'bar' 대신 type 적어보면되나
+            data: {
+                labels: [], // 초기 레이블
+                datasets: [{
+                    label: '총 재고량',
+                    data: [],
+                    backgroundColor: [],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    function updateLogisticesWarehouseChart() {
+        $.ajax({
+            url: '/distribution/api/warehouseStockChart', // 창고 데이터를 가져오는 URL
+            type: 'GET',
+            contentType: 'application/json',
+            success: function (response) {
+                const labels = [];
+                const data = [];
+
+                // response 데이터를 순회하며 필요한 정보 추출
+                response.forEach(function (item) {
+                    labels.push(item.sourceName); // sourceName을 labels로 사용
+                    data.push(item.sourceQuantity); // sourceQuantity 값을 data로 사용
+                });
+
+                warehouseStockChart.data.labels = labels;
+                warehouseStockChart.data.datasets[0].data = data;
+                warehouseStockChart.data.datasets[0].backgroundColor = colors.slice(0, data.length);
+                warehouseStockChart.update();
+            },
+            error: function (xhr, status, error) {
+                console.error('차트 데이터 가져오는데 실패했습니다. 다시 시도해주세요.:', error);
+            }
+        });
+    }
+
+    const colors = [
+        '#E57373', '#F06292', '#BA68C8', '#64B5F6', '#4FC3F7',
+        '#4DD0E1', '#4DB6AC', '#81C784', '#AED581', '#DCE775',
+        '#FFD54F', '#FFB74D', '#FF8A65', '#A1887F', '#90A4AE',
+        '#FF6F61', '#6D4C41', '#5C6BC0', '#EF5350', '#AB47BC',
+        '#7E57C2', '#42A5F5', '#29B6F6', '#26C6DA', '#1E88E5',
+        '#039BE5', '#0288D1', '#0277BD', '#01579B', '#C2185B',
+        '#D81B60', '#E91E63', '#F06292', '#EC407A', '#AB47BC',
+        '#8E24AA', '#7B1FA2', '#6D1B9D', '#4A148C', '#2C6C9A',
+        '#00838F', '#00695C', '#004D40', '#004D40', '#1B5E20'
+    ];
+
+
+</script>
+</body>
+</html>

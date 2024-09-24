@@ -1,0 +1,38 @@
+<!-- adminHeader.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+<div id="toastContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 1060;"></div>
+<nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+    <!-- 여기에 기존의 <nav> 태그 안의 내용을 복사 -->
+    <!-- Navbar Brand-->
+    <a class="navbar-brand ps-3" href="/sales/user">SCM</a>
+
+    <!-- Navbar Search-->
+    <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
+        <div class="input-group">
+            <input class="form-control" type="text" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />
+            <button class="btn btn-primary" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
+        </div>
+    </form>
+    <!-- Navbar-->
+    <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-light" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-user fa-fw"></i>
+                <span class="ms-2 d-none d-lg-inline-block" th:text="${#authentication.name}">User</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                <!-- 로그인 여부에 따라 다르게 표시 -->
+                <li th:if="${#authentication.principal != null}">
+                    <a class="dropdown-item" href="/logout">Logout</a>
+                </li>
+
+                <li th:if="${#authentication.principal == null}">
+                    <a class="dropdown-item" href="/member/login">Login</a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+</nav>

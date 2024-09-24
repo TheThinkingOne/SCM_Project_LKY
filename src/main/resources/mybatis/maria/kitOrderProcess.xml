@@ -1,0 +1,299 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.jhta_2402_2_final.dao.distribution.KitOrderProcessDao">
+
+    <select id="findNewOrders" resultType="Map">
+        SELECT
+            KO.KIT_ORDER_ID AS kitOrderID,
+            KC.NAME AS kitCompanyName,
+            M.NAME AS kitName,
+            M.PRICE AS kitPrice,
+            KO.QUANTITY AS quantity,
+            KO.QUANTITY * M.PRICE AS totalPrice,
+            KO.PRODUCT_ORDER_DATE AS kitOrderDate,
+            S.STATUS AS status
+        FROM
+            KIT_ORDER KO
+                JOIN KIT_COMPANY KC ON KO.KIT_COMPANY_ID = KC.KIT_COMPANY_ID
+                JOIN MEALKIT M ON KO.MEALKIT_ID = M.MEALKIT_ID
+                JOIN STATUS S ON KO.STATUS_ID = S.STATUS_ID
+        WHERE S.STATUS_ID IN (1, 3)
+    </select>
+
+    <select id="findProcessedOrders" resultType="Map">
+        SELECT
+            KO.KIT_ORDER_ID AS kitOrderID,
+            KC.NAME AS kitCompanyName,
+            M.NAME AS kitName,
+            M.PRICE AS kitPrice,
+            KO.QUANTITY AS quantity,
+            KO.QUANTITY * M.PRICE AS totalPrice,
+            KO.PRODUCT_ORDER_DATE AS kitOrderDate,
+            S.STATUS AS status
+        FROM
+            KIT_ORDER KO
+                JOIN KIT_COMPANY KC ON KO.KIT_COMPANY_ID = KC.KIT_COMPANY_ID
+                JOIN MEALKIT M ON KO.MEALKIT_ID = M.MEALKIT_ID
+                JOIN STATUS S ON KO.STATUS_ID = S.STATUS_ID
+        WHERE S.STATUS_ID NOT IN (1, 3)
+    </select>
+
+
+
+    <!--원래 사용하던 밀키트 주문별로 필요 재료랑 수량 나타내던 쿼리-->
+    <select id="findKitRecipe" resultType="Map">
+        SELECT
+            S.NAME AS 재료명,
+            KS.QUANTITY AS 필요수량
+        FROM
+            KIT_ORDER KO
+                JOIN KIT_SOURCE KS ON KO.MEALKIT_ID = KS.MEALKIT_ID
+                JOIN SOURCE S ON KS.SOURCE_ID = S.SOURCE_ID
+        WHERE
+            KO.KIT_ORDER_ID = #{kitOrderId}
+        /*KO.KIT_ORDER_ID LIKE CONCAT(#{kitOrderId}, '%')*/
+    </select>
+
+    <!--위에꺼 대신 사용할 쿼리(모든 주문에 대한 상세 정보 리스트-->
+    <select id="findKitRecipeWithStockAndSupplier" resultType="Map">
+        SELECT
+            S.NAME AS 재료명,
+            (KS.QUANTITY * #{orderQuantity}) AS 필요수량,
+            IFNULL(SUM(LWS.QUANTITY), 0) AS 창고재고수량,
+            sp_min.min_price AS 현재최소가,
+            sp_min.companyName AS 공급업체명
+        FROM
+            KIT_SOURCE KS
+                JOIN SOURCE S ON KS.SOURCE_ID = S.SOURCE_ID
+                LEFT JOIN LOGISTICS_WAREHOUSE_STACK LWS ON KS.SOURCE_ID = LWS.SOURCE_ID
+                JOIN (
+                SELECT
+                    sp.SOURCE_ID,
+                    sp.PRICE AS min_price,
+                    pc.NAME AS companyName
+                FROM
+                    SOURCE_PRICE sp
+                        JOIN PRODUCT_COMPANY pc ON sp.PRODUCT_COMPANY_ID = pc.PRODUCT_COMPANY_ID
+                WHERE
+                    sp.PRICE = (
+                        SELECT MIN(sp2.PRICE)
+                        FROM SOURCE_PRICE sp2
+                        WHERE sp2.SOURCE_ID = sp.SOURCE_ID
+                    )
+                GROUP BY sp.SOURCE_ID  -- 동일한 재료에 대해 하나의 최솟값만 선택
+                    LIMIT 1
+            ) sp_min ON S.SOURCE_ID = sp_min.SOURCE_ID
+        WHERE
+            KS.MEALKIT_ID = #{mealkitId}
+        GROUP BY
+            S.NAME, KS.QUANTITY, sp_min.min_price, sp_min.companyName
+    </select>
+
+
+
+    <!-- 재료 판매를 위해 밀키트에 있는 각 재료별 판매 수량 조회를 위한 쿼리(재료의 고유번호(SOURCE_ID 도 가져옴) -->
+    <select id="findKitRecipeWithStock" resultType="Map">
+        SELECT
+            S.SOURCE_ID AS 재료번호,
+            S.NAME AS 재료명,
+            KS.QUANTITY * #{orderQuantity} AS 필요수량,
+            IFNULL(SUM(LWS.QUANTITY), 0) AS 창고재고수량
+        FROM
+            KIT_SOURCE KS
+                JOIN SOURCE S ON KS.SOURCE_ID = S.SOURCE_ID
+                LEFT JOIN LOGISTICS_WAREHOUSE_STACK LWS ON KS.SOURCE_ID = LWS.SOURCE_ID
+        WHERE
+            KS.MEALKIT_ID = #{mealkitId}
+        GROUP BY
+            S.NAME, KS.QUANTITY;
+    </select>
+
+    <!-- 밀키트 주문에 해당하는 MEALKIT_ID 가져오는 쿼리 -->
+    <select id="findMealKitByKitOrderId" resultType="String">
+        SELECT MEALKIT_ID
+        FROM KIT_ORDER
+        /*WHERE KIT_ORDER_ID LIKE CONCAT(#{kitOrderId}, '%')*/
+        WHERE
+            KIT_ORDER_ID = #{kitOrderId}
+
+    </select>
+
+    <select id="findOrderQuantityByKitOrderId" resultType="Integer">
+        SELECT QUANTITY
+        FROM KIT_ORDER
+        /*WHERE KIT_ORDER_ID LIKE CONCAT(#{kitOrderId}, '%')*/
+        WHERE
+            KIT_ORDER_ID = #{kitOrderId}
+    </select>
+
+    <insert id="requestKitSourceOrder" parameterType="KitOrderProcessDto">
+        INSERT INTO KIT_ORDER_PROCESS (
+            KIT_ORDER_ID,
+            KIT_COMPANY_NAME,
+            KIT_NAME,
+            QUANTITY,
+            ORDER_DATE,
+            STATUS
+        ) VALUES (
+                     #{kitOrderUid},
+                     #{kitCompanyName},
+                     #{kitName},
+                     #{quantity},
+                     #{kitOrderDate},
+                     #{status}
+                 )
+    </insert>
+
+    <select id="findOrdersByKeyword" parameterType="String" resultType="Map">
+        SELECT
+            KO.KIT_ORDER_ID AS kitOrderID,
+            KC.NAME AS kitCompanyName,
+            M.NAME AS kitName,
+            KO.QUANTITY AS quantity,
+            KO.PRODUCT_ORDER_DATE AS kitOrderDate,
+            S.STATUS AS status
+        FROM
+            KIT_ORDER KO
+                JOIN KIT_COMPANY KC ON KO.KIT_COMPANY_ID = KC.KIT_COMPANY_ID
+                JOIN MEALKIT M ON KO.MEALKIT_ID = M.MEALKIT_ID
+                JOIN STATUS S ON KO.STATUS_ID = S.STATUS_ID
+        WHERE
+            M.NAME LIKE CONCAT('%', #{orderKeyword}, '%')
+    </select>
+
+    <!--판매 버튼을 눌렀을 때 창고 재고에서 요구수량 만큼 빼네는 쿼리-->
+    <update id="updateWarehouseStock">
+        UPDATE LOGISTICS_WAREHOUSE_STACK
+        SET QUANTITY = QUANTITY - #{quantityChange}
+        WHERE SOURCE_ID = #{sourceId}
+    </update>
+
+    <update id="updateKitOrderStatus">
+        UPDATE KIT_ORDER
+        SET STATUS_ID = #{status}
+        WHERE KIT_ORDER_ID = #{kitOrderId}
+    </update>
+
+    <!--    <update id="updateOrderLogStatus">-->
+    <!--        UPDATE KIT_ORDER_LOG-->
+    <!--        SET STATUS_ID = #{status}-->
+    <!--        WHERE KIT_ORDER_ID = #{kitOrderId}-->
+    <!--    </update>-->
+    <insert id="insertKitOrderLog">
+        INSERT INTO KIT_ORDER_LOG (KIT_ORDER_LOG_ID, KIT_ORDER_ID, STATUS_ID, PRODUCT_ORDER_DATE)
+        VALUES (UUID(), #{kitOrderId}, #{status}, NOW())
+    </insert>
+
+
+    <!--제발되라-->
+    <select id="findProductCompanyIdAndSourceId" resultType="Map">
+        SELECT
+            sp.PRODUCT_COMPANY_ID AS productCompanyId,
+            sp.SOURCE_ID AS sourceId
+        FROM
+            SOURCE s
+                JOIN
+            SOURCE_PRICE sp ON s.SOURCE_ID = sp.SOURCE_ID
+                JOIN
+            PRODUCT_COMPANY pc ON sp.PRODUCT_COMPANY_ID = pc.PRODUCT_COMPANY_ID
+        WHERE
+            s.NAME = #{sourceName}
+          AND pc.NAME = #{supplierName}
+          AND sp.PRICE = #{minPrice}
+    </select>
+
+
+
+    <!-- PRODUCT_ORDER 테이블에 재료주문목록 INSERT 하는 쿼리 -->
+    <!-- PRODUCT ORDER ID, PRODUCT COMPANY ID, SOURCE_ID, QUANTITY(부족한 수량), PRICE, PRODUCT ORDER DATE, STATUS_ID -->
+    <insert id="insertProductOrder">
+        INSERT INTO PRODUCT_ORDER (
+            PRODUCT_ORDER_ID,
+            PRODUCT_COMPANY_ID,
+            SOURCE_ID,
+            QUANTITY,
+            PRICE,
+            PRODUCT_ORDER_DATE,
+            STATUS_ID,  -- 쉼표 추가
+            KIT_ORDER_ID  -- 마지막 항목에는 쉼표가 없어야 함
+        )
+        VALUES (
+                   UUID(),
+                   #{supplierId},
+                   #{sourceId},
+                   #{insufficientQuantity},
+                   #{minPrice},
+                   NOW(),
+                   1,
+                   #{kitOrderId}
+               )
+    </insert>
+
+    <select id="findProductOrderIds" resultType="String">
+        SELECT PRODUCT_ORDER_ID
+        FROM PRODUCT_ORDER
+        WHERE KIT_ORDER_ID = #{kitOrderId}
+    </select>
+
+
+    <insert id="insertProductOrderLog">
+        INSERT INTO PRODUCT_ORDER_LOG
+        (PRODUCT_ORDER_LOG_ID,
+         PRODUCT_ORDER_ID,
+         STATUS_ID,
+         PRODUCT_ORDER_DATE)
+        VALUES (
+                   UUID(),
+                   #{productOrderId},
+                   1,
+                   NOW()
+               )
+    </insert>
+
+    <select id="findWarehouseStacks" resultType="Map">
+        SELECT
+            LOGISTICS_WAREHOUSE_STACK_ID AS 유통창고ID,
+            SOURCE_ID AS 재료ID,
+            QUANTITY AS 재고수량,
+            created_at AS 적재일자
+        FROM
+            LOGISTICS_WAREHOUSE_STACK
+        WHERE
+            SOURCE_ID = #{sourceId}
+        ORDER BY
+            created_at ASC;
+    </select>
+
+    <update id="updateWarehouseStockWithStackId">
+        UPDATE
+            LOGISTICS_WAREHOUSE_STACK
+        SET QUANTITY = QUANTITY - #{required}
+        WHERE LOGISTICS_WAREHOUSE_STACK_ID = #{stackId}
+    </update>
+
+
+    <select id="findAllWarehouseStocks" resultType="WareHouseStockChartDto" parameterType="String">
+        SELECT
+            s.NAME AS sourceName,
+                SUM(lws.QUANTITY) AS sourceQuantity
+                /*lws.SOURCE_ID AS '재료ID'*/
+        FROM
+            SOURCE s
+                JOIN
+            LOGISTICS_WAREHOUSE_STACK lws ON s.SOURCE_ID = lws.SOURCE_ID
+        GROUP BY s.NAME
+
+    </select>
+
+    <select id="findKitOrderStatus" resultType="Integer" parameterType="String">
+        SELECT STATUS_ID
+        FROM KIT_ORDER
+        WHERE KIT_ORDER_ID = #{kitOrderId}
+    </select>
+
+
+
+
+
+
+
+</mapper>
