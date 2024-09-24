@@ -76,7 +76,7 @@ public class KitOrderProcessService {
 
         // 처리 전 상태(1) 이 아니면 로직 안 수행되게 false 로 리턴
         int currentStatus = kitOrderProcessDao.findKitOrderStatus(kitOrderId);
-        if (currentStatus != 1 && currentStatus != 3 ) {
+        if (currentStatus != 1 && currentStatus != 3 && currentStatus != 2) {
             return false;
         }
 
