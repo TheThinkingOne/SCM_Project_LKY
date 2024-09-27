@@ -26,8 +26,7 @@
 * 발주/출고를 할 때마다 주문로그를 생성하거나 상태를 변경하여 다른 업체에서 이 데이터를 사용할 수 있음
 # 핵심 로직 코드
 <details>
-  <summary>FIFO 방식의 재고 출고(차감) 로직</summary>
-```java
+  <summary><b>FIFO 방식의 재고 출고(차감) 로직</b></summary>
   
     @Transactional
     public boolean processKitOrder(String kitOrderId) {
@@ -97,6 +96,6 @@
 
         return true; // 성공적으로 처리 완료
     }
-```</details>
+</details>
 
 
