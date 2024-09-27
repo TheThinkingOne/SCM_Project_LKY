@@ -26,7 +26,7 @@
 * 발주/출고를 할 때마다 주문로그를 생성하거나 상태를 변경하여 다른 업체에서 이 데이터를 사용할 수 있음
 # 핵심 로직 코드
 <details>
-  <summary><b>FIFO 방식의 재고 출고(차감) 로직</b></summary>
+  <summary><b>FIFO 방식의 재고 출고(차감) 비즈니스 로직 메소드</b></summary>
   
     @Transactional
     public boolean processKitOrder(String kitOrderId) {
@@ -95,6 +95,46 @@
         messagingTemplate.convertAndSend("/topic/warehouse/update", "update");
 
         return true; // 성공적으로 처리 완료
+    }
+</details>
+<details>
+  <summary><b>재품 발주 구현 비즈니스 로직 메소드</b></summary>
+  
+    @Transactional
+    public boolean requestProductOrders(RequestOrderDto requestOrderDto) {
+        String kitOrderId = requestOrderDto.getKitOrderId();
+        List<OrderDetail> orderDetails = requestOrderDto.getOrderDetailList();
+        // Front 에서 fetch로 넘어온 JSON 값을 DTO로 리턴해서 정보를 담는 orderDetails
+
+        for (OrderDetail detail : orderDetails) {
+            String sourceName = detail.getSourceName();
+            String supplierName = detail.getSupplierName();
+            int minPrice = detail.getMinPrice();
+            int insufficientQuantity = detail.getInsufficientQuantity();
+            // 각각의 부족한 재료들에 대한 정보들
+
+            Map<String, Object> productInfo = kitOrderProcessDao.findProductCompanyIdAndSourceId(sourceName, supplierName, minPrice);
+            // 해당 주문에 대한 판매처 회사명, 재료의 아이디 찾는 쿼리 메소드 findProductCompanyIdAndSourceId
+
+            String supplierId = (String) productInfo.get("productCompanyId");
+            String sourceId = (String) productInfo.get("sourceId");
+
+            if (insufficientQuantity > 0) { // 부족한 수량이 0보다 크면(재고가 부족하면)
+                kitOrderProcessDao.insertProductOrder(supplierId, sourceId, minPrice, insufficientQuantity, minPrice, kitOrderId); 
+                // Product Order 테이블에 발주 주문 로그 INSERT 
+                List<String> productOrderIds = kitOrderProcessDao.findProductOrderIds(kitOrderId);
+
+                for (String productOrderId : productOrderIds) {
+                    kitOrderProcessDao.insertProductOrderLog(productOrderId);
+                    // 해당 발주 주문의 ID 별로 기록용 로그 INSERT
+                }
+
+                kitOrderProcessDao.updateKitOrderStatus(kitOrderId, 2); // 밀키트 주문 로그의 상태 변경(2 : 처리중)
+                kitOrderProcessDao.insertKitOrderLog(kitOrderId, 2); // 기록용 로그 삽입(2 : 처리중)
+            }
+        }
+
+        return true;
     }
 </details>
 
