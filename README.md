@@ -28,7 +28,8 @@
 <details>
   <summary>FIFO 방식의 재고 출고(차감) 로직</summary>
 ```java
-@Transactional
+  
+    @Transactional
     public boolean processKitOrder(String kitOrderId) {
 
         // 처리 전 상태(1) 이 아니면 로직 안 수행되게 false 로 리턴
